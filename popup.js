@@ -1,3 +1,4 @@
+import { getActiveTabUrl } from "./utils.js";
 // adding a new bookmark row to the popup
 const addNewBookmark = () => {};
 

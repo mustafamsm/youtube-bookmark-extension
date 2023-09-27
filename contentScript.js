@@ -4,18 +4,27 @@
   let currentVideoBookmarks = [];
 
   //listen for messages from the background script
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((obj, sender, response) => {
     //check if the message is of type NEW
-    const { type, value, videoId } = message;
+    const { type, value, videoId } = obj;
     if (type == "NEW") {
         //set the current video id
         currentVideo = videoId;
         newVideoLoaded();
     }
   });
+  const fetchBookmarks =  () => {
+    return new Promise((resolve) => {
+      chrome.storage.sync.get([currentVideo], (result) => {
+        resolve(result[currentVideo]? JSON.parse(result[currentVideo]):[]);
+      });
+    })
+  }
 
   const newVideoLoaded =async () => {
     const bookmarkBtnExists= document.getElementsByClassName("bookmark-btn")[0];
+    //fetch the current video bookmarks
+    currentVideoBookmarks=await fetchBookmarks();
     if(!bookmarkBtnExists){
         const bookmarkBtn=document.createElement("img");
 
@@ -31,15 +40,17 @@
         bookmarkBtn.addEventListener("click",addNewBookmarkEventHandler);
     }
   }
-  const addNewBookmarkEventHandler=()=>{
+  const addNewBookmarkEventHandler= async ()=>{
     const currentTime=youtubePlayer.currentTime;
     const newBookmark={
         time:currentTime,
         desc:"Bookmarl at "+getTime(currentTime)+""
     };
-    console.log(newBookmark);
+    //add the new bookmark to the current video bookmarks
+    currentVideoBookmarks=await fetchBookmarks();
+
     chrome.storage.sync.set({
-        [currentVideo]:JSON.stringify(...currentVideoBookmarks,newBookmark).sort((a,b)=>a.time-b.time)
+        [currentVideo]:JSON.stringify([...currentVideoBookmarks,newBookmark].sort((a,b)=>a.time-b.time))
     })
 }
    
