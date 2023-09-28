@@ -1,13 +1,54 @@
 import { getActiveTabUrl } from "./utils.js";
 // adding a new bookmark row to the popup
-const addNewBookmark = () => {};
+const addNewBookmark = (bookmarkEslment, bookmark) => {
+  const bookmarkTitleElement = document.createElement("div");
+  const newBookmarkElement = document.createElement("div");
 
-const viewBookmarks = () => {};
+  bookmarkTitleElement.textContent = bookmark.desc;
+  bookmarkTitleElement.className = "bookmark-title";
 
-const onPlay = e => {};
+  newBookmarkElement.id = "bookmark-" + bookmark.time;
+  newBookmarkElement.className = "bookmark";
+  newBookmarkElement.setAttribute('timestamp',bookmark.time);
+  newBookmarkElement.appendChild(bookmarkTitleElement);
+  bookmarkEslment.appendChild(newBookmarkElement);
+};
 
-const onDelete = e => {};
+const viewBookmarks = (currentVideoBookmarks = []) => {
+  const bookmarkEslment = document.getElementById("bookmarks")[0];
+  bookmarkEslment.innerHTML = "";
+  if (currentVideoBookmarks.length > 0) {
+    for (let i = 0; i < currentVideoBookmarks.length; i++) {
+      const bookmark = currentVideoBookmarks[i];
+      addNewBookmark(bookmarkEslment, bookmark);
+    }
+  } else {
+    bookmarkEslment.innerHTML = "<i class='row'>No bookmarks found.</i>";
+  }
+};
 
-const setBookmarkAttributes =  () => {};
+const onPlay = (e) => {};
 
-document.addEventListener("DOMContentLoaded", () => {});
+const onDelete = (e) => {};
+
+const setBookmarkAttributes = (src,eventListener,controlParentElemnt) => {};
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const activeTab = await getActiveTabUrl();
+  const queryParameters = activeTab.url.split("?")[1];
+  const urlParameters = new URLSearchParams(queryParameters);
+  const currentVideo = urlParameters.get("v");
+  if (activeTab.url.includes("youtube.com/watch") && currentVideo) {
+    chrome.storage.sync.get([currentVideo], (data) => {
+      const currentVideoBookmarks = data[currentVideo]
+        ? JSON.parse(data[currentVideo])
+        : [];
+      //view bookmarks
+      viewBookmarks(currentVideoBookmarks);
+    });
+  } else {
+    const container = document.getElementsByClassName("container")[0];
+    container.innerHTML =
+      "<div class='title'>This is not a youtube video page.</div>";
+  }
+});

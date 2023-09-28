@@ -10,6 +10,7 @@
     if (type == "NEW") {
         //set the current video id
         currentVideo = videoId;
+        console.log(currentVideo)
         newVideoLoaded();
     }
   });
